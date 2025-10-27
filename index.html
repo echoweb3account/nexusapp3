@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus - Web3 Social Prototype</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #475569;
+            border-radius: 20px;
+        }
+        .glow-effect {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <div id="app" class="flex flex-col md:flex-row min-h-screen">
+
+        <nav class="md:w-64 bg-slate-900 border-r border-slate-700 p-4 md:flex flex-col fixed bottom-0 md:static w-full z-10">
+            <div class="hidden md:block mb-8">
+                <h1 class="text-3xl font-bold text-blue-400">NEXUS<span class="text-xs text-blue-600">.dapp</span></h1>
+            </div>
+            
+            <ul class="flex md:flex-col justify-around md:justify-start space-x-0 md:space-x-0 md:space-y-3 w-full bg-slate-900 border-t border-slate-700 md:border-t-0 p-2 md:p-0">
+                <li class="nav-item">
+                    <a href="#" onclick="navigate('feed')" data-view="feed" class="flex items-center p-3 rounded-xl hover:bg-slate-800 transition text-slate-400">
+                        <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        <span class="hidden md:block">Feed</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" onclick="navigate('discover')" data-view="discover" class="flex items-center p-3 rounded-xl hover:bg-slate-800 transition text-slate-400">
+                        <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        <span class="hidden md:block">Discover</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" onclick="navigate('profile')" data-view="profile" class="flex items-center p-3 rounded-xl hover:bg-slate-800 transition text-slate-400">
+                        <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        <span class="hidden md:block">Profile</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="mt-auto hidden md:block border-t border-slate-700 pt-4">
+                <div class="flex items-center justify-between p-3 bg-slate-800 rounded-xl glow-effect hover:bg-slate-700 cursor-pointer transition">
+                    <div class="flex items-center">
+                        <img src="https://placehold.co/40x40/5e8e9e/FFFFFF?text=NFT" alt="PFP" class="w-10 h-10 rounded-full border-2 border-blue-400">
+                        <div class="ml-3">
+                            <p class="text-sm font-semibold text-white">0xDeFiUser...A4</p>
+                            <p class="text-xs text-green-400">Connected</p>
+                        </div>
+                    </div>
+                    <svg class="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M17.778 8.222c-4.296-4.296-11.26-4.296-15.555 0l1.378 1.378c3.551-3.551 9.33-3.551 12.88 0l1.297-1.297zM15 11c0 2.21-1.79 4-4 4s-4-1.79-4-4 1.79-4 4-4 4 1.79 4 4z" clip-rule="evenodd"></path></svg>
+                </div>
+            </div>
+        </nav>
+
+        <main id="main-content" class="flex-1 overflow-y-auto p-4 md:p-8 md:ml-64 pb-20 md:pb-4 custom-scrollbar"></main>
+    </div>
+
+    <script>
+        let currentPage = 'feed';
+        const mainContent = document.getElementById('main-content');
+
+        function createPost(userHandle, content, tokens, isNFT = false) {
+            const tokenIcon = `
+                <svg class="w-5 h-5 text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-7-9.5a2.5 2.5 0 115 0 2.5 2.5 0 01-5 0zm10 0a2.5 2.5 0 115 0 2.5 2.5 0 01-5 0zM10 10a.5.5 0 00-.5.5v3.293l-1.146-1.147a.5.5 0 00-.708.708l2 2a.5.5 0 00.708 0l2-2a.5.5 0 00-.708-.708L10.5 13.793V10.5a.5.5 0 00-.5-.5z" clip-rule="evenodd"></path>
+                </svg>
+            `;
+            const nftBadge = isNFT ? '<span class="ml-2 text-xs font-medium bg-purple-600 text-white px-2 py-0.5 rounded-full">NFT Post</span>' : '';
+            const pfpStyle = isNFT ? 'border-purple-500' : 'border-blue-500';
+
+            return `
+                <div class="bg-slate-800 p-5 rounded-xl shadow-lg border border-slate-700 transition duration-300 hover:border-blue-500/50">
+                    <div class="flex items-center mb-4">
+                        <img src="https://placehold.co/50x50/334155/FFFFFF?text=${userHandle.charAt(1)}" alt="User PFP" class="w-10 h-10 rounded-full border-2 ${pfpStyle}">
+                        <div class="ml-3">
+                            <p class="font-semibold text-white">${userHandle}</p>
+                            <p class="text-xs text-slate-400">Posted on Blockchain at Block #173${Math.floor(Math.random() * 999)}</p>
+                        </div>
+                        ${nftBadge}
+                    </div>
+                    <p class="text-slate-300 mb-4">${content}</p>
+                    <div class="flex items-center justify-between text-sm text-slate-400 border-t border-slate-700 pt-3">
+                        <div class="flex items-center space-x-4">
+                            <button class="flex items-center hover:text-blue-400 transition">
+                                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                <span>${Math.floor(Math.random() * 500) + 100}</span>
+                            </button>
+                            <button class="flex items-center hover:text-green-400 transition" onclick="alert('Simulated tip sent!')">
+                                ${tokenIcon}
+                                <span>Tip ${tokens} $NEX</span>
+                            </button>
+                        </div>
+                        <span class="text-xs text-slate-500">View on Explorer</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderFeed() {
+            return `
+                <h2 class="text-4xl font-extrabold mb-8 text-white">Home Feed</h2>
+                
+                <div class="bg-slate-800 p-5 mb-8 rounded-xl border border-blue-500/50">
+                    <textarea class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-slate-200 focus:ring-blue-500 focus:border-blue-500 resize-none" rows="3" placeholder="What's minting on your mind?"></textarea>
+                    <div class="flex justify-between items-center mt-3">
+                        <label class="flex items-center text-sm text-slate-400 cursor-pointer">
+                            <input type="checkbox" class="rounded text-blue-500 bg-slate-900 border-slate-700 focus:ring-blue-500 mr-2">
+                            Mint as NFT
+                        </label>
+                        <button class="px-5 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-150" onclick="alert('Simulated Post Minted!')">
+                            Mint Post
+                        </button>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    ${createPost('@CryptoKid77', 'Just minted my first PFP from the Celestial collection! Web3 social is truly next level. Imagine owning your content!', 50, true)}
+                    ${createPost('@DecentralDiva', 'Feeling bearish on gas fees today. Anyone else seeing high tx costs on Layer 2 solutions?', 15)}
+                    ${createPost('@MetaverseMike', 'New governance proposal is live! Make sure you use your $NEX voting power. Link in bio.', 120)}
+                    ${createPost('@AnonBuilder', 'Working on a new smart contract for fractionalized social assets. Alpha test dropping next week.', 80, true)}
+                    ${createPost('@HodlHomie', 'GM to the community! Hope everyone is having a green day. 🚀', 5)}
+                </div>
+            `;
+        }
+
+        function renderDiscover() {
+            return `
+                <h2 class="text-4xl font-extrabold mb-8 text-white">Discover & Trending</h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
+                        <h3 class="text-xl font-bold mb-4 text-white">Trending Tokens ($NEX, $WAGMI)</h3>
+                        <ul class="space-y-3">
+                            <li class="flex justify-between items-center text-slate-300 border-b border-slate-700 pb-2">
+                                <span>#DAO_Voting_Final</span>
+                                <span class="text-sm text-green-400">+150% Posts</span>
+                            </li>
+                            <li class="flex justify-between items-center text-slate-300 border-b border-slate-700 pb-2">
+                                <span>#L2_Scaling</span>
+                                <span class="text-sm text-red-400">-5% Posts</span>
+                            </li>
+                            <li class="flex justify-between items-center text-slate-300 pb-2">
+                                <span>#New_NFT_Drop</span>
+                                <span class="text-sm text-green-400">+500% Posts</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-slate-800 p-5 rounded-xl border border-slate-700">
+                        <h3 class="text-xl font-bold mb-4 text-white">Featured Creators</h3>
+                        <div class="space-y-3">
+                            ${renderCreatorCard('JaneDoe.eth', '3.4k Followers', '1,200 $NEX Staked', 'border-yellow-500')}
+                            ${renderCreatorCard('0xProtocolLead', '12k Followers', '9,800 $NEX Staked', 'border-blue-500')}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 bg-slate-800 p-5 rounded-xl border border-slate-700">
+                    <h3 class="text-xl font-bold mb-4 text-white">Featured NFTs on Nexus</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                        ${renderNFTCard('Cosmic Ape #82', '0.8 ETH', 'https://placehold.co/150x150/f9a8d4/FFFFFF?text=APE')}
+                        ${renderNFTCard('Punk Clone #155', '1.2 ETH', 'https://placehold.co/150x150/93c5fd/FFFFFF?text=PUNK')}
+                        ${renderNFTCard('Gen 3 Artifact', '0.15 ETH', 'https://placehold.co/150x150/d1d5db/0f172a?text=ARTIFACT')}
+                        ${renderNFTCard('Meta Land Key', '2.5 ETH', 'https://placehold.co/150x150/6ee7b7/0f172a?text=LAND')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCreatorCard(handle, followers, staked, pfpClass) {
+            return `
+                <div class="flex items-center justify-between p-3 bg-slate-900 rounded-lg hover:bg-slate-700/50 transition cursor-pointer">
+                    <div class="flex items-center">
+                        <img src="https://placehold.co/40x40/5e8e9e/FFFFFF?text=C" alt="PFP" class="w-10 h-10 rounded-full border-2 ${pfpClass}">
+                        <div class="ml-3">
+                            <p class="font-semibold text-white">${handle}</p>
+                            <p class="text-sm text-slate-400">${followers}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-medium text-yellow-400">${staked}</p>
+                        <button class="text-xs text-blue-400 hover:underline">Follow & Stake</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderNFTCard(title, price, imageSrc) {
+            return `
+                <div class="bg-slate-700 rounded-xl p-3 shadow-md hover:shadow-xl hover:translate-y-[-2px] transition duration-300">
+                    <img src="${imageSrc}" alt="${title}" class="w-full h-auto rounded-lg mb-2 border border-slate-600">
+                    <p class="font-semibold text-sm text-white truncate">${title}</p>
+                    <div class="flex justify-between items-center mt-1">
+                        <span class="text-xs text-purple-400 font-bold">${price}</span>
+                        <button class="text-xs bg-purple-600 px-2 py-1 rounded-full text-white hover:bg-purple-700 transition">View</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderProfile() {
+            return `
+                <h2 class="text-4xl font-extrabold mb-8 text-white">My Profile: @0xDeFiUser</h2>
+                
+                <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 mb-8">
+                    <div class="flex flex-col md:flex-row items-start md:items-center">
+                        <div class="relative mb-4 md:mb-0">
+                            <img src="https://placehold.co/120x120/5e8e9e/FFFFFF?text=PFP+NFT" alt="User NFT PFP" class="w-24 h-24 rounded-full border-4 border-blue-400 glow-effect">
+                            <span class="absolute bottom-0 right-0 bg-purple-600 text-white text-xs px-2 py-0.5 rounded-full border-2 border-slate-800">NFT Owner</span>
+                        </div>
+                        <div class="md:ml-6">
+                            <p class="text-2xl font-bold text-white">0xDeFiUser...A4</p>
+                            <p class="text-lg text-blue-400 mb-2">@CryptoKid77</p>
+                            <p class="text-slate-300">Decentralized finance enthusiast and digital art collector. Building the future, one block at a time.</p>
+                            <div class="flex space-x-4 text-sm mt-3">
+                                <span class="text-slate-400">Followers: <span class="font-semibold text-white">1,823</span></span>
+                                <span class="text-slate-400">Following: <span class="font-semibold text-white">56</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-slate-700 grid grid-cols-2 gap-4">
+                        <div class="p-3 bg-slate-900 rounded-lg">
+                            <p class="text-xs text-slate-400">Wallet Balance (ETH)</p>
+                            <p class="text-xl font-bold text-green-400">3.14 ETH</p>
+                        </div>
+                        <div class="p-3 bg-slate-900 rounded-lg">
+                            <p class="text-xs text-slate-400">Nexus Tokens ($NEX)</p>
+                            <p class="text-xl font-bold text-yellow-400">12,450.78</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-2xl font-bold mb-4 text-white">My Posts (Owned Content)</h3>
+                <div class="space-y-6">
+                    ${createPost('@CryptoKid77', 'My first ever on-chain message! I own this data block forever. #Web3Social', 50, true)}
+                    ${createPost('@CryptoKid77', 'Experimenting with token-gated content features. So much potential here.', 20)}
+                </div>
+            `;
+        }
+
+        function renderApp() {
+            let content = '';
+            switch (currentPage) {
+                case 'profile':
+                    content = renderProfile();
+                    break;
+                case 'discover':
+                    content = renderDiscover();
+                    break;
+                case 'feed':
+                default:
+                    content = renderFeed();
+                    break;
+            }
+            mainContent.innerHTML = content;
+            updateNavStyles();
+        }
+
+        function updateNavStyles() {
+            document.querySelectorAll('.nav-item a').forEach(link => {
+                const view = link.getAttribute('data-view');
+                if (view === currentPage) {
+                    link.classList.remove('text-slate-400', 'hover:bg-slate-800');
+                    link.classList.add('bg-blue-600', 'text-white', 'glow-effect');
+                } else {
+                    link.classList.add('text-slate-400', 'hover:bg-slate-800');
+                    link.classList.remove('bg-blue-600', 'text-white', 'glow-effect');
+                }
+            });
+        }
+
+        function navigate(view) {
+            currentPage = view;
+            renderApp();
+            return false;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderApp();
+        });
+    </script>
+</body>
+</html>
